@@ -14,10 +14,11 @@ class AppBody extends React.Component {
       sources: [],
       sourceError: null,
       articleError: null,
+      selectionSouces: null,
     };
   }
 
-  sources(sourcesUrl) {
+  sources() {
     fetch(sourcesUrl)
       .then((response) => {
         if (response.ok) {
@@ -33,11 +34,12 @@ class AppBody extends React.Component {
         this.setState({ sources: sources, sourceError: null });
       })
       .catch((error) => {
+        console.log(error);
         this.setState({ sources: [], sourceError: error });
       });
   }
 
-  articles(articlesUrl) {
+  articles() {
     fetch(articlesUrl)
       .then((response) => {
         if (response.ok) {
@@ -59,19 +61,32 @@ class AppBody extends React.Component {
   }
 
   componentDidMount() {
-    this.sources(sourcesUrl);
-    this.articles(articlesUrl);
+    this.sources();
+    this.articles();
+  }
+
+  selectedSource(index) {
+    this.setState({ selectionSouces: index });
   }
   render() {
     let sourceResult;
-    if (this.state.error) {
+    if (this.state.sourceError) {
       sourceResult = <p>{this.state.sourceError}</p>;
     } else {
       sourceResult = (
         <ul className="list-group">
           {this.state.sources.map((source, index) => {
             return (
-              <li className="list-group-item" key={index}>
+              <li
+                className={
+                  "list-group-item " +
+                  (this.state.selectionSouces === index ? "active" : "")
+                }
+                key={index}
+                onClick={() => {
+                  this.selectedSource(index);
+                }}
+              >
                 {source.name}
               </li>
             );
@@ -88,9 +103,28 @@ class AppBody extends React.Component {
         <div>
           {this.state.articles.map((article, index) => {
             return (
-              <p key={index} style={{ border: "1px solid black" }}>
-                {article.description}
-              </p>
+              <div className="card my-2" key={index}>
+                <div className="row g-0">
+                  <div className="col-md-3">
+                    <img
+                      className="img img-fluid"
+                      src={article.urlToImage}
+                      alt={article.source.name}
+                    ></img>
+                  </div>
+                  <div className="col-md-9">
+                    <div className="card-body">
+                      <h5 className="card-title">{article.title}</h5>
+                      <p className="card-text">{article.description}</p>
+                      <p className="card-text">
+                        <small className="text-muted">
+                          {article.source.name}
+                        </small>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
             );
           })}
         </div>
