@@ -2,10 +2,10 @@ import React from "react";
 
 // https://<domain>/<path>?<param1>=<value1>&<param2>=<value2>
 const sourcesUrl =
-  "https://newsapi.org/v2/sources?apiKey=77a634d78fbe42eaa0059e2eed7868f2&language=en";
+  "https://newsapi.org/v2/sources?apiKey=b5e4aade57854b568497b5284c3d2c3e&language=en";
 
 const articlesUrl =
-  "https://newsapi.org/v2/top-headlines?apiKey=77a634d78fbe42eaa0059e2eed7868f2";
+  "https://newsapi.org/v2/top-headlines?apiKey=b5e4aade57854b568497b5284c3d2c3e";
 
 // country selection change
 // => fetch sources for selected country
@@ -24,6 +24,16 @@ class AppBody extends React.Component {
       articleError: null,
       selectedSourceIndex: -1,
       selectedCountryIndex: 0,
+      categories: [
+        "business",
+        "entertainment",
+        "general",
+        "health",
+        "science",
+        "sports",
+        "technology",
+      ],
+      slectedCategoryIndex: -1,
     };
   }
 
@@ -31,6 +41,12 @@ class AppBody extends React.Component {
     let url = sourcesUrl;
     let selectedCountry = this.state.countries[this.state.selectedCountryIndex];
     url += "&country=" + selectedCountry;
+    if (this.state.slectedCategoryIndex >= 0) {
+      let selectedCategory = this.state.categories[
+        this.state.slectedCategoryIndex
+      ];
+      url += "&category=" + selectedCategory;
+    }
     console.log(url);
     fetch(url)
       .then((response) => {
@@ -60,6 +76,12 @@ class AppBody extends React.Component {
         this.state.selectedCountryIndex
       ];
       url += `&country=${selectedCountry}`;
+      if (this.state.slectedCategoryIndex >= 0) {
+        let selectedCategory = this.state.categories[
+          this.state.slectedCategoryIndex
+        ];
+        url += `&category=${selectedCategory}`;
+      }
     } else {
       let selectedSource = this.state.sources[this.state.selectedSourceIndex];
       url += "&sources=" + selectedSource.id;
@@ -107,6 +129,15 @@ class AppBody extends React.Component {
     );
   }
 
+  chnageSelectedCategory(index) {
+    this.setState(
+      { slectedCategoryIndex: index, source: [], selectedSourceIndex: -1 },
+      () => {
+        this.fetchSources();
+        this.fetchArticles();
+      }
+    );
+  }
   render() {
     let sourceResult;
     if (this.state.sourceError) {
@@ -219,6 +250,28 @@ class AppBody extends React.Component {
           </nav>
         </header>
         <main>
+          <div className="container">
+            <ul className="list-group list-group-horizontal">
+              {this.state.categories.map((category, index) => {
+                return (
+                  <li
+                    className={
+                      "list-group-item " +
+                      (this.state.slectedCategoryIndex === index
+                        ? "active"
+                        : "")
+                    }
+                    key={index}
+                    onClick={() => {
+                      this.chnageSelectedCategory(index);
+                    }}
+                  >
+                    {category}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
           <div className="container">
             <div className="row">
               <div className="col-4">{sourceResult}</div>
