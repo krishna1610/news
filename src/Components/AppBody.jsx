@@ -129,7 +129,7 @@ class AppBody extends React.Component {
     );
   }
 
-  chnageSelectedCategory(index) {
+  changeSelectedCategory(index) {
     this.setState(
       { slectedCategoryIndex: index, source: [], selectedSourceIndex: -1 },
       () => {
@@ -263,7 +263,7 @@ class AppBody extends React.Component {
                     }
                     key={index}
                     onClick={() => {
-                      this.chnageSelectedCategory(index);
+                      this.changeSelectedCategory(index);
                     }}
                   >
                     {category}
