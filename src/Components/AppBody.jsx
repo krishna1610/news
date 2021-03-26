@@ -27,11 +27,10 @@ class AppBody extends React.Component {
     };
   }
 
-  sources(country) {
+  fetchSources() {
     let url = sourcesUrl;
-    if (country) {
-      url += "&country=" + country;
-    }
+    let selectedCountry = this.state.countries[this.state.selectedCountryIndex];
+    url += "&country=" + selectedCountry;
     console.log(url);
     fetch(url)
       .then((response) => {
@@ -53,17 +52,19 @@ class AppBody extends React.Component {
       });
   }
 
-  articles(id, countryName) {
+  fetchArticles() {
     let url = articlesUrl;
-
-    if (id === undefined || id === null) {
-      url += "&country=" + countryName; // selected country
+    if (this.state.selectedSourceIndex < 0) {
+      // Means we don't have any source selected
+      let selectedCountry = this.state.countries[
+        this.state.selectedCountryIndex
+      ];
+      url += `&country=${selectedCountry}`;
     } else {
-      url += "&sources=" + id;
+      let selectedSource = this.state.sources[this.state.selectedSourceIndex];
+      url += "&sources=" + selectedSource.id;
     }
-
     console.log(url);
-
     fetch(url)
       .then((response) => {
         if (response.ok) {
@@ -85,25 +86,27 @@ class AppBody extends React.Component {
   }
 
   componentDidMount() {
-    this.sources();
-    this.articles(undefined, "us"); // id = undefined
+    this.fetchSources();
+    this.fetchArticles(); // id = undefined
   }
 
-  selectedSource(index) {
-    let selectedSourceObj = this.state.sources[index];
+  sourceDidChanged(index) {
     this.setState({ articles: [], selectedSourceIndex: index }, () => {
       // after render method called
-      this.articles(selectedSourceObj.id);
+      this.fetchArticles();
     });
   }
 
-  selectedCountry(index) {
-    let countryName = this.state.countries[index];
-    this.setState({ sources: [], selectedCountryIndex: index }, () => {
-      this.sources(countryName);
-      this.articles(undefined, countryName);
-    });
+  changeSelectedCountry(index) {
+    this.setState(
+      { sources: [], selectedCountryIndex: index, selectedSourceIndex: -1 },
+      () => {
+        this.fetchSources();
+        this.fetchArticles();
+      }
+    );
   }
+
   render() {
     let sourceResult;
     if (this.state.sourceError) {
@@ -120,7 +123,7 @@ class AppBody extends React.Component {
                 }
                 key={index}
                 onClick={() => {
-                  this.selectedSource(index);
+                  this.sourceDidChanged(index);
                 }}
               >
                 {source.name}
@@ -202,7 +205,7 @@ class AppBody extends React.Component {
                           }
                           href="#"
                           onClick={() => {
-                            this.selectedCountry(index);
+                            this.changeSelectedCountry(index);
                           }}
                         >
                           {country}
