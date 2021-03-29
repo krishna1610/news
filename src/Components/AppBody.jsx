@@ -7,6 +7,9 @@ const sourcesUrl =
 const articlesUrl =
   "https://newsapi.org/v2/top-headlines?apiKey=b5e4aade57854b568497b5284c3d2c3e";
 
+const everyThingUrl =
+  "https://newsapi.org/v2/everything?apiKey=b5e4aade57854b568497b5284c3d2c3e";
+
 // country selection change
 // => fetch sources for selected country
 // => fetch articles for selected country
@@ -34,7 +37,10 @@ class AppBody extends React.Component {
         "technology",
       ],
       slectedCategoryIndex: -1,
+      searchValue: "",
     };
+    this.searchParticularArticle = this.searchParticularArticle.bind(this);
+    this.resetParticularArticle = this.resetParticularArticle.bind(this);
   }
 
   fetchSources() {
@@ -47,7 +53,6 @@ class AppBody extends React.Component {
       ];
       url += "&category=" + selectedCategory;
     }
-    console.log(url);
     fetch(url)
       .then((response) => {
         if (response.ok) {
@@ -102,14 +107,45 @@ class AppBody extends React.Component {
         this.setState({ articles: articles, articleError: null });
       })
       .catch((error) => {
-        console.log(error);
         this.setState({ articles: [], articleError: error });
       });
   }
 
+  fetchEveryThing() {
+    let url = everyThingUrl;
+    if (this.state.searchValue) {
+      let newVaule = "";
+      for (let i = 0; i < this.state.searchValue.length; i++) {
+        if (this.state.searchValue[i] === " ") {
+          newVaule += "+";
+        } else {
+          newVaule += this.state.searchValue[i];
+        }
+      }
+      url += "&q=" + newVaule;
+    }
+    console.log(url);
+    fetch(url)
+      .then((response) => {
+        if (response.ok) {
+          return response.json();
+        } else {
+          throw "error";
+        }
+      })
+      .then((data) => {
+        return data.articles;
+      })
+      .then((articles) => {
+        this.setState({ articles: articles, articleError: null });
+      })
+      .catch((error) => {
+        this.setState({ articles: [], articleError: error });
+      });
+  }
   componentDidMount() {
     this.fetchSources();
-    this.fetchArticles(); // id = undefined
+    this.fetchArticles();
   }
 
   sourceDidChanged(index) {
@@ -131,12 +167,24 @@ class AppBody extends React.Component {
 
   changeSelectedCategory(index) {
     this.setState(
-      { slectedCategoryIndex: index, source: [], selectedSourceIndex: -1 },
+      { slectedCategoryIndex: index, sources: [], selectedSourceIndex: -1 },
       () => {
         this.fetchSources();
         this.fetchArticles();
       }
     );
+  }
+
+  searchParticularArticle() {
+    this.setState({ searchValue: this.state.searchValue }, () => {
+      this.fetchEveryThing();
+    });
+  }
+
+  resetParticularArticle() {
+    this.setState({ searchValue: "" }, () => {
+      this.fetchArticles();
+    });
   }
   render() {
     let sourceResult;
@@ -221,7 +269,6 @@ class AppBody extends React.Component {
               >
                 <span className="navbar-toggler-icon"></span>
               </button>
-
               <div className="collapse navbar-collapse" id="navbarsExample02">
                 <ul className="navbar-nav me-auto">
                   {this.state.countries.map((country, index) => {
@@ -245,6 +292,28 @@ class AppBody extends React.Component {
                     );
                   })}
                 </ul>
+                <input
+                  className="form-control me-2"
+                  type="search"
+                  placeholder="Search"
+                  aria-label="Search"
+                  value={this.state.searchValue}
+                  onChange={(event) => {
+                    this.setState({ searchValue: event.target.value });
+                  }}
+                ></input>
+                <button
+                  className="btn btn-outline-success"
+                  onClick={this.searchParticularArticle}
+                >
+                  Search
+                </button>
+                <button
+                  className="btn btn-outline-success"
+                  onClick={this.resetParticularArticle}
+                >
+                  Reset
+                </button>
               </div>
             </div>
           </nav>
