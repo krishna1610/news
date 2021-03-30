@@ -113,17 +113,11 @@ class AppBody extends React.Component {
 
   fetchEveryThing() {
     let url = everyThingUrl;
+    let newStr;
     if (this.state.searchValue) {
-      let newVaule = "";
-      for (let i = 0; i < this.state.searchValue.length; i++) {
-        if (this.state.searchValue[i] === " ") {
-          newVaule += "+";
-        } else {
-          newVaule += this.state.searchValue[i];
-        }
-      }
-      url += "&q=" + newVaule;
+      newStr = this.state.searchValue.replaceAll(" ", "+");
     }
+    url += "&q=" + newStr;
     console.log(url);
     fetch(url)
       .then((response) => {
@@ -176,7 +170,7 @@ class AppBody extends React.Component {
   }
 
   searchParticularArticle() {
-    this.setState({ searchValue: this.state.searchValue }, () => {
+    this.setState({}, () => {
       this.fetchEveryThing();
     });
   }
