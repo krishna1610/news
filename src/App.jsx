@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import AppHeader from "./Components/AppHeader";
 import AppBody from "./Components/AppBody";
 
@@ -18,45 +18,33 @@ const everyThingUrl =
 // Initial - componentDidMount - fetch -> country=us --> articles
 // Selection Change - fetch -> sources=<selectedSource.id> --> articles
 
-class App extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      countries: ["us", "gb", "in"],
-      articles: [],
-      sources: [],
-      sourceError: null,
-      articleError: null,
-      selectedSourceIndex: -1,
-      selectedCountryIndex: 0,
-      categories: [
-        "business",
-        "entertainment",
-        "general",
-        "health",
-        "science",
-        "sports",
-        "technology",
-      ],
-      slectedCategoryIndex: -1,
-      searchValue: "",
-    };
-    this.searchParticularArticle = this.searchParticularArticle.bind(this);
-    this.resetParticularArticle = this.resetParticularArticle.bind(this);
-    this.changeSelectedCountry = this.changeSelectedCountry.bind(this);
-    this.searchTextOnChanged = this.searchTextOnChanged.bind(this);
-    this.changeSelectedCategory = this.changeSelectedCategory.bind(this);
-    this.sourceDidChanged = this.sourceDidChanged.bind(this);
-  }
+function App() {
+  const countries = ["us", "gb", "in"];
+  const categories = [
+    "business",
+    "entertainment",
+    "general",
+    "health",
+    "science",
+    "sports",
+    "technology",
+  ];
+  const [articles, setArticles] = useState({
+    articles: [],
+    articleError: null,
+  });
+  const [sources, setSources] = useState({ sources: [], sourceError: null });
+  const [selectedSourceIndex, setSelectedSourceIndex] = useState(-1);
+  const [selectedCountryIndex, setSelectedCountryIndex] = useState(0);
+  const [slectedCategoryIndex, setSlectedCategoryIndex] = useState(-1);
+  const [searchValue, setSearchValue] = useState("");
 
-  fetchSources() {
+  const fetchSources = () => {
     let url = sourcesUrl;
-    let selectedCountry = this.state.countries[this.state.selectedCountryIndex];
+    let selectedCountry = countries[selectedCountryIndex];
     url += "&country=" + selectedCountry;
-    if (this.state.slectedCategoryIndex >= 0) {
-      let selectedCategory = this.state.categories[
-        this.state.slectedCategoryIndex
-      ];
+    if (slectedCategoryIndex >= 0) {
+      let selectedCategory = categories[slectedCategoryIndex];
       url += "&category=" + selectedCategory;
     }
     fetch(url)
@@ -71,30 +59,28 @@ class App extends React.Component {
         return data.sources;
       })
       .then((sources) => {
-        this.setState({ sources: sources, sourceError: null });
+        setSources({ sources: sources, sourceError: null });
+        //this.setState({ sources: sources, sourceError: null });
       })
       .catch((error) => {
         console.log(error);
-        this.setState({ sources: [], sourceError: error });
+        setSources({ sources: [], sourceError: error });
+        //this.setState({ sources: [], sourceError: error });
       });
-  }
+  };
 
-  fetchArticles() {
+  const fetchArticles = () => {
     let url = articlesUrl;
-    if (this.state.selectedSourceIndex < 0) {
+    if (selectedSourceIndex < 0) {
       // Means we don't have any source selected
-      let selectedCountry = this.state.countries[
-        this.state.selectedCountryIndex
-      ];
+      let selectedCountry = countries[selectedCountryIndex];
       url += `&country=${selectedCountry}`;
-      if (this.state.slectedCategoryIndex >= 0) {
-        let selectedCategory = this.state.categories[
-          this.state.slectedCategoryIndex
-        ];
+      if (slectedCategoryIndex >= 0) {
+        let selectedCategory = categories[slectedCategoryIndex];
         url += `&category=${selectedCategory}`;
       }
     } else {
-      let selectedSource = this.state.sources[this.state.selectedSourceIndex];
+      let selectedSource = sources.sources[selectedSourceIndex];
       url += "&sources=" + selectedSource.id;
     }
     console.log(url);
@@ -110,18 +96,18 @@ class App extends React.Component {
         return data.articles;
       })
       .then((articles) => {
-        this.setState({ articles: articles, articleError: null });
+        setArticles({ articles: articles, articleError: null });
       })
       .catch((error) => {
-        this.setState({ articles: [], articleError: error });
+        setArticles({ articles: [], articleError: error });
       });
-  }
+  };
 
-  fetchEveryThing() {
+  const fetchEveryThing = () => {
     let url = everyThingUrl;
     let newStr;
-    if (this.state.searchValue) {
-      newStr = this.state.searchValue.replaceAll(" ", "+");
+    if (searchValue) {
+      newStr = searchValue.replaceAll(" ", "+");
     }
     url += "&q=" + newStr;
     console.log(url);
@@ -137,26 +123,28 @@ class App extends React.Component {
         return data.articles;
       })
       .then((articles) => {
-        this.setState({ articles: articles, articleError: null });
+        setArticles({ articles: articles, articleError: null });
       })
       .catch((error) => {
-        this.setState({ articles: [], articleError: error });
+        setArticles({ articles: [], articleError: error });
       });
-  }
+  };
 
-  componentDidMount() {
-    this.fetchSources();
-    this.fetchArticles();
-  }
+  useEffect(() => {
+    fetchSources();
+  });
+  useEffect(() => {
+    fetchArticles();
+  });
 
-  sourceDidChanged(index) {
+  const sourceDidChanged = (index) => {
     this.setState({ articles: [], selectedSourceIndex: index }, () => {
       // after render method called
       this.fetchArticles();
     });
-  }
+  };
 
-  changeSelectedCountry(index) {
+  const changeSelectedCountry = (index) => {
     this.setState(
       {
         sources: [],
@@ -169,9 +157,9 @@ class App extends React.Component {
         this.fetchArticles();
       }
     );
-  }
+  };
 
-  changeSelectedCategory(index) {
+  const changeSelectedCategory = (index) => {
     this.setState(
       { slectedCategoryIndex: index, sources: [], selectedSourceIndex: -1 },
       () => {
@@ -179,50 +167,48 @@ class App extends React.Component {
         this.fetchArticles();
       }
     );
-  }
+  };
 
-  searchParticularArticle() {
+  const searchParticularArticle = () => {
     this.setState({}, () => {
       this.fetchEveryThing();
     });
-  }
+  };
 
-  resetParticularArticle() {
+  const resetParticularArticle = () => {
     this.setState({ searchValue: "" }, () => {
       this.fetchArticles();
     });
-  }
+  };
 
-  searchTextOnChanged(event) {
+  const searchTextOnChanged = (event) => {
     this.setState({ searchValue: event.target.value });
-  }
+  };
 
-  render() {
-    return (
-      <div>
-        <AppHeader
-          countries={this.state.countries}
-          selectedCountryIndex={this.state.selectedCountryIndex}
-          changeSelectedCountry={this.changeSelectedCountry}
-          searchValue={this.state.searchValue}
-          searchTextOnChanged={this.searchTextOnChanged}
-          searchParticularArticle={this.searchParticularArticle}
-          resetParticularArticle={this.resetParticularArticle}
-        />
-        <AppBody
-          categories={this.state.categories}
-          slectedCategoryIndex={this.state.slectedCategoryIndex}
-          changeSelectedCategory={this.changeSelectedCategory}
-          sourceError={this.state.sourceError}
-          sources={this.state.sources}
-          selectedSourceIndex={this.state.selectedSourceIndex}
-          sourceDidChanged={this.sourceDidChanged}
-          articleError={this.state.articleError}
-          articles={this.state.articles}
-        />
-      </div>
-    );
-  }
+  return (
+    <div>
+      <AppHeader
+        countries={countries}
+        selectedCountryIndex={selectedCountryIndex}
+        changeSelectedCountry={changeSelectedCountry}
+        searchValue={searchValue}
+        searchTextOnChanged={searchTextOnChanged}
+        searchParticularArticle={searchParticularArticle}
+        resetParticularArticle={resetParticularArticle}
+      />
+      <AppBody
+        categories={categories}
+        slectedCategoryIndex={slectedCategoryIndex}
+        changeSelectedCategory={changeSelectedCategory}
+        sourceError={sources.sourceError}
+        sources={sources.sources}
+        selectedSourceIndex={selectedSourceIndex}
+        sourceDidChanged={sourceDidChanged}
+        articleError={articles.articleError}
+        articles={articles.articles}
+      />
+    </div>
+  );
 }
 
 export default App;
