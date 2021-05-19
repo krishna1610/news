@@ -2,7 +2,7 @@ import React from "react";
 
 function AppBodyCategoryList({
   categories,
-  slectedCategoryIndex,
+  selectedCategoryIndex,
   changeSelectedCategory,
 }) {
   return (
@@ -13,7 +13,7 @@ function AppBodyCategoryList({
             <li
               className={
                 "list-group-item " +
-                (slectedCategoryIndex === index ? "active" : "")
+                (selectedCategoryIndex === index ? "active" : "")
               }
               key={index}
               onClick={() => {

@@ -18,90 +18,26 @@ const everyThingUrl =
 // Initial - componentDidMount - fetch -> country=us --> articles
 // Selection Change - fetch -> sources=<selectedSource.id> --> articles
 
+const countries = ["us", "gb", "in"];
+const categories = [
+  "business",
+  "entertainment",
+  "general",
+  "health",
+  "science",
+  "sports",
+  "technology",
+];
+
 function App() {
-  const countries = ["us", "gb", "in"];
-  const categories = [
-    "business",
-    "entertainment",
-    "general",
-    "health",
-    "science",
-    "sports",
-    "technology",
-  ];
-  const [articles, setArticles] = useState({
-    articles: [],
-    articleError: null,
-  });
-  const [sources, setSources] = useState({ sources: [], sourceError: null });
+  const [articles, setArticles] = useState([]);
+  const [articleError, setArticleError] = useState(null);
+  const [sources, setSources] = useState([]);
+  const [sourceError, setSourceError] = useState(null);
   const [selectedSourceIndex, setSelectedSourceIndex] = useState(-1);
   const [selectedCountryIndex, setSelectedCountryIndex] = useState(0);
-  const [slectedCategoryIndex, setSlectedCategoryIndex] = useState(-1);
+  const [selectedCategoryIndex, setSelectedCategoryIndex] = useState(-1);
   const [searchValue, setSearchValue] = useState("");
-
-  const fetchSources = () => {
-    let url = sourcesUrl;
-    let selectedCountry = countries[selectedCountryIndex];
-    url += "&country=" + selectedCountry;
-    if (slectedCategoryIndex >= 0) {
-      let selectedCategory = categories[slectedCategoryIndex];
-      url += "&category=" + selectedCategory;
-    }
-    fetch(url)
-      .then((response) => {
-        if (response.ok) {
-          return response.json();
-        } else {
-          throw "data not found";
-        }
-      })
-      .then((data) => {
-        return data.sources;
-      })
-      .then((sources) => {
-        setSources({ sources: sources, sourceError: null });
-        //this.setState({ sources: sources, sourceError: null });
-      })
-      .catch((error) => {
-        console.log(error);
-        setSources({ sources: [], sourceError: error });
-        //this.setState({ sources: [], sourceError: error });
-      });
-  };
-
-  const fetchArticles = () => {
-    let url = articlesUrl;
-    if (selectedSourceIndex < 0) {
-      // Means we don't have any source selected
-      let selectedCountry = countries[selectedCountryIndex];
-      url += `&country=${selectedCountry}`;
-      if (slectedCategoryIndex >= 0) {
-        let selectedCategory = categories[slectedCategoryIndex];
-        url += `&category=${selectedCategory}`;
-      }
-    } else {
-      let selectedSource = sources.sources[selectedSourceIndex];
-      url += "&sources=" + selectedSource.id;
-    }
-    console.log(url);
-    fetch(url)
-      .then((response) => {
-        if (response.ok) {
-          return response.json();
-        } else {
-          throw "Unknown error occured. Please try again later.";
-        }
-      })
-      .then((data) => {
-        return data.articles;
-      })
-      .then((articles) => {
-        setArticles({ articles: articles, articleError: null });
-      })
-      .catch((error) => {
-        setArticles({ articles: [], articleError: error });
-      });
-  };
 
   const fetchEveryThing = () => {
     let url = everyThingUrl;
@@ -123,66 +59,115 @@ function App() {
         return data.articles;
       })
       .then((articles) => {
-        setArticles({ articles: articles, articleError: null });
+        setArticles(articles);
+        setArticleError(null);
       })
       .catch((error) => {
-        setArticles({ articles: [], articleError: error });
+        setArticleError(error);
+        setArticles([]);
       });
   };
 
   useEffect(() => {
+    const fetchSources = () => {
+      let url = sourcesUrl;
+      let selectedCountry = countries[selectedCountryIndex];
+      url += "&country=" + selectedCountry;
+      if (selectedCategoryIndex >= 0) {
+        let selectedCategory = categories[selectedCategoryIndex];
+        url += "&category=" + selectedCategory;
+      }
+      fetch(url)
+        .then((response) => {
+          if (response.ok) {
+            return response.json();
+          } else {
+            throw "data not found";
+          }
+        })
+        .then((data) => {
+          return data.sources;
+        })
+        .then((sources) => {
+          setSelectedSourceIndex(-1);
+          setSources(sources);
+          setSourceError(null);
+        })
+        .catch((error) => {
+          console.log(error);
+          setSelectedSourceIndex(-1);
+          setSources([]);
+          setSourceError(error);
+        });
+    };
+
     fetchSources();
-  });
+  }, [selectedCountryIndex, selectedCategoryIndex]);
+
   useEffect(() => {
-    fetchArticles();
-  });
+    const fetchArticles = () => {
+      let url = articlesUrl;
+      if (selectedSourceIndex < 0) {
+        // Means we don't have any source selected
+        let selectedCountry = countries[selectedCountryIndex];
+        url += `&country=${selectedCountry}`;
+        if (selectedCategoryIndex >= 0) {
+          let selectedCategory = categories[selectedCategoryIndex];
+          url += `&category=${selectedCategory}`;
+        }
+      } else {
+        let selectedSource = sources[selectedSourceIndex];
+        url += "&sources=" + selectedSource.id;
+      }
+      console.log(url);
+      fetch(url)
+        .then((response) => {
+          if (response.ok) {
+            return response.json();
+          } else {
+            throw "Unknown error occured. Please try again later.";
+          }
+        })
+        .then((data) => {
+          return data.articles;
+        })
+        .then((articles) => {
+          setArticles(articles);
+          setArticleError(null);
+        })
+        .catch((error) => {
+          setArticleError(error);
+          setArticles([]);
+        });
+    };
+
+    if (searchValue.length === 0) {
+      fetchArticles();
+    }
+  }, [sources, selectedSourceIndex, searchValue]); // "a"
 
   const sourceDidChanged = (index) => {
-    this.setState({ articles: [], selectedSourceIndex: index }, () => {
-      // after render method called
-      this.fetchArticles();
-    });
+    setSelectedSourceIndex(index);
   };
 
   const changeSelectedCountry = (index) => {
-    this.setState(
-      {
-        sources: [],
-        selectedCountryIndex: index,
-        selectedSourceIndex: -1,
-        slectedCategoryIndex: -1,
-      },
-      () => {
-        this.fetchSources();
-        this.fetchArticles();
-      }
-    );
+    setSelectedCountryIndex(index);
   };
 
   const changeSelectedCategory = (index) => {
-    this.setState(
-      { slectedCategoryIndex: index, sources: [], selectedSourceIndex: -1 },
-      () => {
-        this.fetchSources();
-        this.fetchArticles();
-      }
-    );
+    setSelectedCategoryIndex(index);
   };
 
   const searchParticularArticle = () => {
-    this.setState({}, () => {
-      this.fetchEveryThing();
-    });
+    fetchEveryThing();
   };
 
   const resetParticularArticle = () => {
-    this.setState({ searchValue: "" }, () => {
-      this.fetchArticles();
-    });
+    setSearchValue("");
   };
 
   const searchTextOnChanged = (event) => {
-    this.setState({ searchValue: event.target.value });
+    setSearchValue(event.target.value);
   };
 
   return (
@@ -198,14 +183,14 @@ function App() {
       />
       <AppBody
         categories={categories}
-        slectedCategoryIndex={slectedCategoryIndex}
+        selectedCategoryIndex={selectedCategoryIndex}
         changeSelectedCategory={changeSelectedCategory}
-        sourceError={sources.sourceError}
-        sources={sources.sources}
+        sourceError={sourceError}
+        sources={sources}
         selectedSourceIndex={selectedSourceIndex}
         sourceDidChanged={sourceDidChanged}
-        articleError={articles.articleError}
-        articles={articles.articles}
+        articleError={articleError}
+        articles={articles}
       />
     </div>
   );

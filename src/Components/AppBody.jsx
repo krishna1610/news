@@ -5,7 +5,7 @@ import AppBodySources from "./AppBodySources";
 
 function AppBody({
   categories,
-  slectedCategoryIndex,
+  selectedCategoryIndex,
   changeSelectedCategory,
   sourceError,
   sources,
@@ -18,7 +18,7 @@ function AppBody({
     <main>
       <AppBodyCategoryList
         categories={categories}
-        slectedCategoryIndex={slectedCategoryIndex}
+        selectedCategoryIndex={selectedCategoryIndex}
         changeSelectedCategory={changeSelectedCategory}
       />
       <div className="container">

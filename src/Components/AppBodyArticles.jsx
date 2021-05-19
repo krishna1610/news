@@ -1,6 +1,13 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 function AppBodyArticles({ articleError, articles }) {
+  useEffect(() => {
+    console.log("articles mount/update");
+    return () => {
+      console.log("articles unmount");
+    };
+  });
+
   let articleResult;
   if (articleError) {
     articleResult = <p>{articleError}</p>;
